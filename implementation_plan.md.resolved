@@ -1,0 +1,50 @@
+# Customer Segmentation and Behavior Prediction System Plan
+
+This system provides an end-to-end full-stack ML solution to segment customers and predict their likelihood of purchasing in the next 30 days.
+
+## User Review Required
+- Please review the dataset acquisition approach. We will attempt to download the "Online Retail II Dataset" from the UCI ML Repository. 
+- Please confirm if `c:\ML_Projekt` is an acceptable directory to bootstrap the project in. 
+
+## Proposed Changes
+
+### Machine Learning Core
+- **Data Source**: UCI Online Retail II dataset (`.xlsx`). Needs conversion/loading via Pandas.
+- **Preprocessing**: 
+  - Remove null `CustomerID`
+  - Remove negative `Quantity`
+  - Convert `InvoiceDate` to DateTime
+  - Calculate `TotalPrice = Quantity * UnitPrice`
+- **Feature Engineering** (Customer Level):
+  - Recency (days since last purchase)
+  - Frequency (number of purchases)
+  - Monetary (total spend)
+  - Target: `purchased_next_30_days` (boolean mapped to int)
+- **Clustering**: K-Means with Elbow Method to determine optimal K, assigning segments (High Value, At Risk, Low Engagement).
+- **Prediction**: Train Logistic Regression, Random Forest, Gradient Boosting classifiers. Keep the one with the highest F1-score. Return metrics (accuracy, precision, recall, f1) and confusion matrices.
+- **Recommendations**: Based on the assigned cluster and prediction output, map to actionable business rules.
+
+### Backend (FastAPI)
+- `backend/main.py`: FastAPI server entry point.
+- `backend/api`: Route definitions.
+- `backend/models`: Request/Response Pydantic schemas.
+- `backend/ml`: Subpackage for model loading, prediction, feature engineering logic so it can be called seamlessly by the API.
+
+### Frontend (React + Vite + TailwindCSS)
+- Bootstrap via `npx create-vite-app` (React, TS or JS. We'll use JS/JSX for simplicity but solid structure).
+- **Libraries**: `axios` for API calls, `recharts` for charting, `lucide-react` for icons, `react-router-dom` for navigation.
+- **Pages**:
+  - Dashboard Overview
+  - RFM Dash
+  - Segments Dash
+  - Models Comparison Dash
+  - Customer Search & Details
+  - Insights / Feature Imp
+
+## Verification Plan
+### Automated Tests
+- Run internal scripts to verify the dataset loads correctly and models train without error.
+- Check API endpoints manually using FastAPI's Swagger UI documentation (`/docs`).
+
+### Manual Verification
+- Start backend and frontend servers locally and click through the dashboard to verify charts load, predictions return accurately, and the UI looks premium and responsive as requested.

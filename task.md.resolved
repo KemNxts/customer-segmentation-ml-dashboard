@@ -1,0 +1,38 @@
+# Customer Segmentation and Behavior Prediction System Tasks
+
+- [ ] **Phase 1: Project Setup**
+  - [ ] Initialize frontend and backend directories
+  - [ ] Set up Python virtual environment and install backend dependencies
+  - [ ] Initialize React + Tailwind frontend
+
+- [ ] **Phase 2: Data Acquisition and Preprocessing**
+  - [ ] Download Online Retail II Dataset
+  - [ ] Clean data (remove nulls, negatives, convert dates)
+  - [ ] Create base features (TotalPrice, etc.)
+
+- [ ] **Phase 3: Machine Learning Pipeline**
+  - [ ] Implement RFM feature engineering
+  - [ ] Perform K-Means customer segmentation
+  - [ ] Train predictive models (LogReg, Random Forest, Gradient Boosting)
+  - [ ] Implement Business Recommendation Engine
+  - [ ] Save models and preprocessors
+
+- [ ] **Phase 4: Backend API (FastAPI)**
+  - [ ] Set up FastAPI application structure
+  - [ ] Implement `/data/summary` and `/clusters` endpoints
+  - [ ] Implement `/model-metrics` endpoint
+  - [ ] Implement `/predict/{customer_id}` and `/recommend/{customer_id}` endpoints
+
+- [ ] **Phase 5: Frontend Development (React)**
+  - [ ] Set up routing and layout (Sidebar, Navbar)
+  - [ ] Implement Overview Page (Summary cards)
+  - [ ] Implement RFM Visualization Page
+  - [ ] Implement Segmentation Page (Cluster vis)
+  - [ ] Implement Model Comparison Page
+  - [ ] Implement Customer Detail Page
+  - [ ] Implement Feature Importance Page
+
+- [ ] **Phase 6: Integration and Polishing**
+  - [ ] Connect frontend to backend APIs
+  - [ ] Polish UI/UX (modern design, animations, responsiveness)
+  - [ ] Final end-to-end testing
