@@ -8,7 +8,7 @@ export default function Segmentation() {
     const [data, setData] = useState(null);
 
     useEffect(() => {
-        axios.get('http://localhost:8000/clusters')
+        axios.get('http://localhost:8001/clusters')
             .then((res) => {
                 const formatted = Object.entries(res.data.distribution).map(([name, value]) => ({
                     name, value

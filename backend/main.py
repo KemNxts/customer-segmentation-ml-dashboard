@@ -5,10 +5,17 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from recommendation import generate_recommendations
+from pydantic import BaseModel
+
+class MLFeatures(BaseModel):
+    Recency: float
+    Frequency: float
+    Monetary: float
+    AvgOrderValue: float
+    PurchaseFreqPerMonth: float
 
 app = FastAPI(title="Customer Segmentation API")
 
-# Enable CORS for frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -127,5 +134,51 @@ def recommend_for_customer(customer_id: float):
     return {
         "customer_id": customer_id,
         "prediction_context": pred_res,
+        "recommendations": recs
+    }
+
+@app.post("/predict/manual")
+def predict_manual(features: MLFeatures):
+    if scaler is None or kmeans is None or best_model is None:
+        raise HTTPException(status_code=500, detail="Models not loaded properly.")
+
+    # 1. Cluster mapping
+    try:
+        scaled_rfm = scaler.transform([[features.Recency, features.Frequency, features.Monetary]])
+        cluster_id = int(kmeans.predict(scaled_rfm)[0])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+        
+    # We must deduce Segment from Cluster using existing logic.
+    segment = "Unknown"
+    if features_df is not None:
+        try:
+            sample_segment = features_df[features_df['Cluster'] == cluster_id]['Segment'].iloc[0]
+            segment = sample_segment
+        except:
+            pass
+
+    # 2. Predict Probability and Class
+    try:
+        X_input = pd.DataFrame([{
+            "Recency": features.Recency,
+            "Frequency": features.Frequency,
+            "Monetary": features.Monetary,
+            "AvgOrderValue": features.AvgOrderValue,
+            "PurchaseFreqPerMonth": features.PurchaseFreqPerMonth
+        }])
+        
+        prob = best_model.predict_proba(X_input)[0][1]
+        pred_class = int(best_model.predict(X_input)[0])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+        
+    recs = generate_recommendations(segment, pred_class)
+    
+    return {
+        "cluster": cluster_id,
+        "segment": segment,
+        "probability": float(prob),
+        "predicted_purchase": bool(pred_class),
         "recommendations": recs
     }
