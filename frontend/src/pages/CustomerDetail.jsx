@@ -31,17 +31,36 @@ export default function CustomerDetail() {
             <h1 className="text-4xl font-extrabold text-gray-800 mb-2 tracking-tight">Customer Insights</h1>
             <p className="text-lg text-textMuted mb-10">Real-time prediction and actionable business recommendations per customer.</p>
 
-            <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                    🔍
-                </span>
+            <form onSubmit={handleSearch} className="mb-8">
+                <div className="relative flex items-center gap-4">
+                    <div className="relative flex-grow">
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                            <Search className="w-5 h-5" />
+                        </span>
 
-                <input
-                    type="text"
-                    placeholder="Enter the customer id..."
-                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg"
-                />
-            </div>
+                        <input
+                            type="text"
+                            value={customerId}
+                            onChange={(e) => setCustomerId(e.target.value)}
+                            placeholder="Enter the customer id..."
+                            className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-white/5 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all text-gray-800"
+                            disabled={loading}
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        disabled={loading || !customerId}
+                        className="px-6 py-3 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg shadow-md transition-all whitespace-nowrap"
+                    >
+                        {loading ? 'Searching...' : 'Search'}
+                    </button>
+                </div>
+                {error && (
+                    <div className="mt-3 text-red-500 text-sm font-medium bg-red-500/10 p-3 rounded-lg border border-red-500/20">
+                        {error}
+                    </div>
+                )}
+            </form>
 
             {result && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in slide-in-from-bottom-8 fade-in duration-500 fade-in zoom-in-95">

@@ -9,7 +9,7 @@ from models import train_and_evaluate_models
 
 import json
 
-def main():
+def run_training_pipeline():
     data_path = 'data/online_retail_II.xlsx'
     
     if not os.path.exists(data_path):
@@ -55,6 +55,7 @@ def main():
         json.dump(summary, f, indent=4)
         
     print("Pipeline finished successfully. Models and metrics saved.")
+    return metrics
 
 if __name__ == '__main__':
-    main()
+    run_training_pipeline()

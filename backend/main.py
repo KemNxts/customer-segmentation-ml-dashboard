@@ -5,6 +5,7 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from recommendation import generate_recommendations
+from train import run_training_pipeline
 from pydantic import BaseModel
 
 class MLFeatures(BaseModel):
@@ -136,6 +137,27 @@ def recommend_for_customer(customer_id: float):
         "prediction_context": pred_res,
         "recommendations": recs
     }
+
+@app.post("/retrain")
+def retrain_models():
+    # Store old metrics for comparison
+    old_metrics = metrics.copy() if metrics else {}
+    
+    try:
+        # Execute the full training pipeline synchronously
+        new_metrics = run_training_pipeline()
+        
+        # Trigger reload of the newly written artifacts into memory
+        load_artifacts()
+        
+        return {
+            "status": "success",
+            "message": "Model retrained successfully",
+            "metrics": new_metrics,
+            "old_metrics": old_metrics
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/predict/manual")
 def predict_manual(features: MLFeatures):
