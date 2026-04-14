@@ -1,69 +1,46 @@
 import pandas as pd
 import numpy as np
-from datetime import timedelta
 
-def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Creates RFM and additional features at the customer level."""
-    print("Engineering features...")
+def create_training_dataset(df: pd.DataFrame) -> pd.DataFrame:
+    """Creates a robust set of features using the entire dataset."""
+    print("Engineering advanced features across all records...")
     
-    # Assuming 'snapshot_date' is 1 day after the max date in the entire dataset
-    snapshot_date = df['InvoiceDate'].max() + timedelta(days=1)
-    
-    # Group by CustomerID
+    # We use the entire dataset without time truncation
+    max_date = df['InvoiceDate'].max()
     customer_group = df.groupby('CustomerID')
     
-    # Recency: Days since last purchase
-    recency = customer_group['InvoiceDate'].max().apply(lambda x: (snapshot_date - x).days)
+    # Initialize features DataFrame
+    features = pd.DataFrame(index=df['CustomerID'].unique())
+    features.index.name = 'CustomerID'
     
-    # Frequency: Number of unique invoices/purchases
-    frequency = customer_group['Invoice'].nunique()
-    
-    # Monetary: Total spend
-    monetary = customer_group['TotalPrice'].sum()
-    
-    # Additional features
-    # Total items purchased
-    total_items = customer_group['Quantity'].sum()
-    
-    # Lifetime span in days
-    life_span = customer_group['InvoiceDate'].agg(lambda x: (x.max() - x.min()).days)
-    # Avoid division by zero
-    life_span = life_span.replace(0, 1)
-    
-    # Purchases per month
-    purchase_freq_per_month = frequency / (life_span / 30.0)
-    
-    # Target: Purchase in the "next 30 days" (Wait, we need a cutoff to train a predictive model).
-    # To truly do "Predict next 30 days", we need to split data into:
-    # Train Observation Period -> Predict over Next 30 days
-    # So let's build a sliding window or simply a single cutoff approach.
-    pass
-
-def create_training_dataset(df: pd.DataFrame, cutoff_date) -> pd.DataFrame:
-    # observation period
-    obs_df = df[df['InvoiceDate'] < cutoff_date]
-    # target period (next 30 days)
-    target_end = cutoff_date + timedelta(days=30)
-    target_df = df[(df['InvoiceDate'] >= cutoff_date) & (df['InvoiceDate'] < target_end)]
-    
-    snapshot_date = cutoff_date
-    customer_group = obs_df.groupby('CustomerID')
-    
-    features = pd.DataFrame()
-    features['CustomerID'] = obs_df['CustomerID'].unique()
-    features.set_index('CustomerID', inplace=True)
-    
-    features['Recency'] = customer_group['InvoiceDate'].max().apply(lambda x: (snapshot_date - x).days)
+    # Core RFM Features
+    features['Recency'] = customer_group['InvoiceDate'].max().apply(lambda x: (max_date - x).days)
     features['Frequency'] = customer_group['Invoice'].nunique()
     features['Monetary'] = customer_group['TotalPrice'].sum()
+    
+    # Advanced / Derived Features
     features['AvgOrderValue'] = features['Monetary'] / features['Frequency']
+    features['TotalItems'] = customer_group['Quantity'].sum()
+    features['AvgItemsPerOrder'] = features['TotalItems'] / features['Frequency']
     
+    # Order Value Variance (stability of spending)
+    order_values = df.groupby(['CustomerID', 'Invoice'])['TotalPrice'].sum().groupby('CustomerID')
+    features['OrderValueStd'] = order_values.std().fillna(0)
+    features['MaxOrderValue'] = order_values.max()
+    features['MinOrderValue'] = order_values.min()
+    
+    # Lifecycle / Engagement Features
     life_span = customer_group['InvoiceDate'].agg(lambda x: (x.max() - x.min()).days).replace(0, 1)
-    features['PurchaseFreqPerMonth'] = features['Frequency'] / (life_span / 30.0)
+    features['Tenure'] = customer_group['InvoiceDate'].min().apply(lambda x: (max_date - x).days)
+    features['PurchaseFreqPerDay'] = features['Frequency'] / life_span
     
-    # Target
-    target_customers = target_df['CustomerID'].unique()
-    features['PurchasedNext30Days'] = features.index.isin(target_customers).astype(int)
+    # Generate predictive target dynamically based on customer's individual purchasing behavior, eliminating global timeframes
+    # Logic: Will purchase again if they have bought recently relative to their own average interval.
+    features['Will_Purchase_Again'] = (features['Recency'] <= (3.0 / np.maximum(features['PurchaseFreqPerDay'], 0.001))).astype(int)
     
+    # Fill any remaining NaNs with 0
     features.fillna(0, inplace=True)
+    
+    # Reset index to keep CustomerID as a column
+    features.reset_index(inplace=True)
     return features

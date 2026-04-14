@@ -16,20 +16,49 @@ export default function ModelTest() {
   const [showSuccessMsg, setShowSuccessMsg] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: parseFloat(e.target.value) || 0
-    });
+    const { name, value } = e.target;
+    // Allow empty or digits+decimals only to prevent special characters pasting
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
+  };
+
+  const blockInvalidChars = (e) => {
+    // Prevent typing exponents, signs, and other invalid characters entirely
+    if (['e', 'E', '+', '-'].includes(e.key)) {
+      e.preventDefault();
+    }
   };
 
   const handlePredict = async (e) => {
     e.preventDefault();
+    
+    // Strict > 0 Validation
+    for (const [key, val] of Object.entries(formData)) {
+      const num = parseFloat(val);
+      if (isNaN(num) || num <= 0) {
+        setError(`Please enter a valid number greater than 0 for ${key.replace(/([A-Z])/g, ' $1').trim()}.`);
+        return;
+      }
+    }
+
     setLoading(true);
     setError('');
     setResult(null);
 
+    const payload = {
+      Recency: parseFloat(formData.Recency),
+      Frequency: parseFloat(formData.Frequency),
+      Monetary: parseFloat(formData.Monetary),
+      AvgOrderValue: parseFloat(formData.AvgOrderValue),
+      PurchaseFreqPerMonth: parseFloat(formData.PurchaseFreqPerMonth)
+    };
+
     try {
-      const res = await axios.post('http://localhost:8001/predict/manual', formData);
+      const res = await axios.post('http://localhost:8001/predict/manual', payload);
       setResult(res.data);
       setShowSuccessMsg(true);
       setTimeout(() => setShowSuccessMsg(false), 3000);
@@ -42,10 +71,14 @@ export default function ModelTest() {
 
   const generateInsights = (data) => {
     const activeInsights = [];
-    if (data.Recency < 10 && data.Frequency > 5) activeInsights.push("Highly engaged customer. Strong upsell opportunity detected.");
-    if (data.Frequency < 2 && data.Monetary > 500) activeInsights.push("High-value but inactive user. Re-engagement recommended.");
-    if (data.Recency > 60) activeInsights.push("Customer inactive for long period. High churn probability.");
-    if (data.Monetary < 100) activeInsights.push("Low spending customer. Consider promotional targeting.");
+    const recency = parseFloat(data.Recency) || 0;
+    const frequency = parseFloat(data.Frequency) || 0;
+    const monetary = parseFloat(data.Monetary) || 0;
+    
+    if (recency > 0 && recency < 10 && frequency > 5) activeInsights.push("Highly engaged customer. Strong upsell opportunity detected.");
+    if (frequency > 0 && frequency < 2 && monetary > 500) activeInsights.push("High-value but inactive user. Re-engagement recommended.");
+    if (recency > 60) activeInsights.push("Customer inactive for long period. High churn probability.");
+    if (monetary > 0 && monetary < 100) activeInsights.push("Low spending customer. Consider promotional targeting.");
     return activeInsights;
   };
 
@@ -71,23 +104,23 @@ export default function ModelTest() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-textMuted mb-2">Recency (Days)</label>
-              <input type="number" name="Recency" value={formData.Recency} onChange={handleChange} className="input-field w-full" required />
+              <input type="number" name="Recency" value={formData.Recency} onChange={handleChange} onKeyDown={blockInvalidChars} min="1" step="1" className="input-field w-full" required />
             </div>
             <div>
               <label className="block text-sm font-semibold text-textMuted mb-2">Frequency (Count)</label>
-              <input type="number" name="Frequency" value={formData.Frequency} onChange={handleChange} className="input-field w-full" required />
+              <input type="number" name="Frequency" value={formData.Frequency} onChange={handleChange} onKeyDown={blockInvalidChars} min="1" step="1" className="input-field w-full" required />
             </div>
             <div className="col-span-2">
               <label className="block text-sm font-semibold text-textMuted mb-2">Monetary Value ($)</label>
-              <input type="number" name="Monetary" value={formData.Monetary} onChange={handleChange} className="input-field w-full" required />
+              <input type="number" name="Monetary" value={formData.Monetary} onChange={handleChange} onKeyDown={blockInvalidChars} min="0.01" step="0.01" className="input-field w-full" required />
             </div>
             <div>
               <label className="block text-sm font-semibold text-textMuted mb-2">Avg Order Value</label>
-              <input type="number" name="AvgOrderValue" value={formData.AvgOrderValue} onChange={handleChange} step="0.01" className="input-field w-full" required />
+              <input type="number" name="AvgOrderValue" value={formData.AvgOrderValue} onChange={handleChange} onKeyDown={blockInvalidChars} min="0.01" step="0.01" className="input-field w-full" required />
             </div>
             <div>
               <label className="block text-sm font-semibold text-textMuted mb-2">Purchases/Month</label>
-              <input type="number" name="PurchaseFreqPerMonth" value={formData.PurchaseFreqPerMonth} onChange={handleChange} step="0.1" className="input-field w-full" required />
+              <input type="number" name="PurchaseFreqPerMonth" value={formData.PurchaseFreqPerMonth} onChange={handleChange} onKeyDown={blockInvalidChars} min="0.01" step="0.01" className="input-field w-full" required />
             </div>
           </div>
 

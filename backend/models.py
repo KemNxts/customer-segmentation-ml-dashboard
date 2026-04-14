@@ -7,18 +7,37 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 def train_and_evaluate_models(features: pd.DataFrame):
     print("Training Predictive Models...")
     
-    # Features & Target
-    # We exclude CustomerID (index), Cluster, Segment, and Target
-    drop_cols = ['PurchasedNext30Days', 'Cluster', 'Segment']
+    # Models will learn to classify future purchase viability dropping explicit identifiers.
+    drop_cols = ['Cluster', 'Segment', 'Will_Purchase_Again', 'CustomerID']
     X = features.drop(columns=[col for col in drop_cols if col in features.columns])
-    y = features['PurchasedNext30Days']
+    y = features['Will_Purchase_Again']
     
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+    # Stratified Train-Test Split to maintain label proportions
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
     
+    # Initialize models with optimized hyperparameters to improve accuracy
     models = {
-        'Logistic Regression': LogisticRegression(max_iter=1000, random_state=42),
-        'Random Forest': RandomForestClassifier(n_estimators=100, random_state=42),
-        'Gradient Boosting': GradientBoostingClassifier(n_estimators=100, random_state=42)
+        'Logistic Regression': LogisticRegression(
+            max_iter=2000, 
+            random_state=42, 
+            class_weight='balanced'
+        ),
+        'Random Forest': RandomForestClassifier(
+            n_estimators=200, 
+            max_depth=10,
+            min_samples_split=5,
+            class_weight='balanced',
+            random_state=42,
+            n_jobs=-1
+        ),
+        'Gradient Boosting': GradientBoostingClassifier(
+            n_estimators=150, 
+            learning_rate=0.05,
+            max_depth=4,
+            random_state=42
+        )
     }
     
     results = {}
@@ -27,6 +46,7 @@ def train_and_evaluate_models(features: pd.DataFrame):
     best_model = None
     
     for name, model in models.items():
+        print(f"Training {name}...")
         model.fit(X_train, y_train)
         preds = model.predict(X_test)
         
@@ -36,9 +56,14 @@ def train_and_evaluate_models(features: pd.DataFrame):
         f1 = f1_score(y_test, preds, zero_division=0)
         cm = confusion_matrix(y_test, preds).tolist()
         
-        feat_importance = []
+        # Track feature importance and sort it for better insights
+        feat_importance = {}
         if hasattr(model, 'feature_importances_'):
-            feat_importance = dict(zip(X.columns, model.feature_importances_))
+            imp_tuples = zip(X.columns, model.feature_importances_)
+            feat_importance = {k: v for k, v in sorted(imp_tuples, key=lambda item: item[1], reverse=True)}
+        elif hasattr(model, 'coef_'):
+            imp_tuples = zip(X.columns, abs(model.coef_[0]))
+            feat_importance = {k: v for k, v in sorted(imp_tuples, key=lambda item: item[1], reverse=True)}
             
         results[name] = {
             'accuracy': acc,
@@ -49,11 +74,12 @@ def train_and_evaluate_models(features: pd.DataFrame):
             'feature_importance': feat_importance
         }
         
+        # Optimize model selection prioritizing F1 score due to likely class imbalance
         if f1 > best_f1:
             best_f1 = f1
             best_model_name = name
             best_model = model
             
-    print(f"Best Model: {best_model_name} with F1: {best_f1:.4f}")
+    print(f"Best Model Selected: {best_model_name} with F1-Score: {best_f1:.4f}")
     
     return best_model, best_model_name, results

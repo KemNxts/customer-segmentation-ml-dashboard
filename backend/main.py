@@ -166,10 +166,19 @@ def predict_manual(features: MLFeatures):
 
     # 1. Cluster mapping
     try:
-        scaled_rfm = scaler.transform([[features.Recency, features.Frequency, features.Monetary]])
+        # Construct DataFrame to maintain feature names as strictly required by sklearn
+        rfm_df = pd.DataFrame([{
+            "Recency": max(features.Recency, 1e-5),
+            "Frequency": max(features.Frequency, 1e-5),
+            "Monetary": max(features.Monetary, 1e-5)
+        }])
+        
+        # Apply the log transformation matching training data exactly
+        import numpy as np
+        scaled_rfm = scaler.transform(np.log1p(rfm_df))
         cluster_id = int(kmeans.predict(scaled_rfm)[0])
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Clustering error: {str(e)}")
         
     # We must deduce Segment from Cluster using existing logic.
     segment = "Unknown"
@@ -182,18 +191,32 @@ def predict_manual(features: MLFeatures):
 
     # 2. Predict Probability and Class
     try:
+        # Convert month frequency back to day frequency for the trained model
+        purchase_freq_per_day = features.PurchaseFreqPerMonth / 30.0
+
+        # Synthesize the advanced ML features utilizing the 5 base inputs from the UI
+        total_items = features.Frequency * (features.Monetary / features.AvgOrderValue if features.AvgOrderValue > 0 else 1)
+        avg_items = total_items / features.Frequency if features.Frequency > 0 else 1
+        tenure = features.Recency + (features.Frequency / purchase_freq_per_day if purchase_freq_per_day > 0 else 1)
+
         X_input = pd.DataFrame([{
             "Recency": features.Recency,
             "Frequency": features.Frequency,
             "Monetary": features.Monetary,
             "AvgOrderValue": features.AvgOrderValue,
-            "PurchaseFreqPerMonth": features.PurchaseFreqPerMonth
+            "TotalItems": total_items,
+            "AvgItemsPerOrder": avg_items,
+            "OrderValueStd": features.AvgOrderValue * 0.1,
+            "MaxOrderValue": features.AvgOrderValue * 1.2,
+            "MinOrderValue": features.AvgOrderValue * 0.8,
+            "Tenure": tenure,
+            "PurchaseFreqPerDay": purchase_freq_per_day
         }])
         
         prob = best_model.predict_proba(X_input)[0][1]
         pred_class = int(best_model.predict(X_input)[0])
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
         
     recs = generate_recommendations(segment, pred_class)
     

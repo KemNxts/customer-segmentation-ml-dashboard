@@ -1,65 +1,89 @@
 {
     "Logistic Regression": {
-        "accuracy": 0.7400990099009901,
-        "precision": 0.7168141592920354,
-        "recall": 0.3127413127413127,
-        "f1_score": 0.43548387096774194,
+        "accuracy": 0.9521028037383178,
+        "precision": 0.9470338983050848,
+        "recall": 0.9654427645788337,
+        "f1_score": 0.9561497326203209,
         "confusion_matrix": [
             [
-                517,
-                32
+                368,
+                25
             ],
             [
-                178,
-                81
-            ]
-        ],
-        "feature_importance": []
-    },
-    "Random Forest": {
-        "accuracy": 0.7215346534653465,
-        "precision": 0.5955056179775281,
-        "recall": 0.4092664092664093,
-        "f1_score": 0.4851258581235698,
-        "confusion_matrix": [
-            [
-                477,
-                72
-            ],
-            [
-                153,
-                106
+                16,
+                447
             ]
         ],
         "feature_importance": {
-            "Recency": 0.22354495573847266,
-            "Frequency": 0.12049839653674992,
-            "Monetary": 0.25800197770773126,
-            "AvgOrderValue": 0.2315434145286684,
-            "PurchaseFreqPerMonth": 0.16641125548837787
+            "PurchaseFreqPerDay": 4.6579580641605585,
+            "Frequency": 0.1407046836470495,
+            "Recency": 0.06499936962377748,
+            "Tenure": 0.02440027806052911,
+            "MinOrderValue": 0.005061001442902629,
+            "AvgOrderValue": 0.004101536145436947,
+            "OrderValueStd": 0.003925652928921031,
+            "MaxOrderValue": 0.001042473243941837,
+            "Monetary": 0.0002835872436406411,
+            "TotalItems": 0.00014425001902773345,
+            "AvgItemsPerOrder": 0.00011311772956769117
+        }
+    },
+    "Random Forest": {
+        "accuracy": 0.9883177570093458,
+        "precision": 0.9788583509513742,
+        "recall": 1.0,
+        "f1_score": 0.9893162393162394,
+        "confusion_matrix": [
+            [
+                383,
+                10
+            ],
+            [
+                0,
+                463
+            ]
+        ],
+        "feature_importance": {
+            "PurchaseFreqPerDay": 0.3272124810648344,
+            "Recency": 0.23326152019939683,
+            "OrderValueStd": 0.14443735168113825,
+            "Frequency": 0.11889994457388763,
+            "Monetary": 0.06411204296564293,
+            "Tenure": 0.04343256873765826,
+            "TotalItems": 0.02912112156206375,
+            "MinOrderValue": 0.01335543848213551,
+            "MaxOrderValue": 0.011160987250339633,
+            "AvgItemsPerOrder": 0.007798463331063191,
+            "AvgOrderValue": 0.007208080151839516
         }
     },
     "Gradient Boosting": {
-        "accuracy": 0.745049504950495,
-        "precision": 0.6778523489932886,
-        "recall": 0.38996138996138996,
-        "f1_score": 0.4950980392156863,
+        "accuracy": 0.991822429906542,
+        "precision": 0.9892703862660944,
+        "recall": 0.9956803455723542,
+        "f1_score": 0.9924650161463939,
         "confusion_matrix": [
             [
-                501,
-                48
+                388,
+                5
             ],
             [
-                158,
-                101
+                2,
+                461
             ]
         ],
         "feature_importance": {
-            "Recency": 0.14336233425456393,
-            "Frequency": 0.5244511807938057,
-            "Monetary": 0.11092127293501995,
-            "AvgOrderValue": 0.10503472929321661,
-            "PurchaseFreqPerMonth": 0.11623048272339381
+            "PurchaseFreqPerDay": 0.7233882669228767,
+            "Recency": 0.2676140651226646,
+            "TotalItems": 0.0026069950678576587,
+            "Frequency": 0.00201494117896493,
+            "Tenure": 0.0014403665460586842,
+            "Monetary": 0.001266392591926155,
+            "OrderValueStd": 0.000800148653138051,
+            "MinOrderValue": 0.00031755314796176295,
+            "MaxOrderValue": 0.00021920611167593586,
+            "AvgOrderValue": 0.00017574499605683928,
+            "AvgItemsPerOrder": 0.00015631966081858088
         }
     }
 }

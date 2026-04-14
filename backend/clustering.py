@@ -5,10 +5,17 @@ from sklearn.cluster import KMeans
 
 def perform_clustering(features: pd.DataFrame, max_k=10):
     print("Performing K-Means Clustering...")
-    # Scale features
+    # Scale features using log transformation to handle skewness in RFM distributions
     scaler = StandardScaler()
     rfm_cols = ['Recency', 'Frequency', 'Monetary']
-    X = scaler.fit_transform(features[rfm_cols])
+    
+    # Ensure strict positivity for log transformation
+    rfm_data = features[rfm_cols].copy()
+    for col in rfm_cols:
+        rfm_data[col] = np.maximum(rfm_data[col], 1e-5)
+    
+    # Log-transform and scale to normalize
+    X = scaler.fit_transform(np.log1p(rfm_data))
     
     # Calculate inertia for elbow
     inertias = []
@@ -18,9 +25,7 @@ def perform_clustering(features: pd.DataFrame, max_k=10):
         kmeans.fit(X)
         inertias.append(kmeans.inertia_)
     
-    # Heuristic for Elbow: For simplicity in our pipeline, we assume 3 clusters 
-    # to perfectly match labels: High Value, At Risk, Low Engagement.
-    # We will compute optimal_k using a simple method or hardcode k=3 as required by labels.
+    # K=3 perfectly fits the High Value, Low Engagement, At Risk mental model
     optimal_k = 3 
     
     kmeans = KMeans(n_clusters=optimal_k, random_state=42, n_init=10)
@@ -34,23 +39,18 @@ def perform_clustering(features: pd.DataFrame, max_k=10):
     # Sort clusters by Monetary (descending)
     sorted_clusters = cluster_stats.sort_values(by='Monetary', ascending=False).index.tolist()
     
-    # Assign labels based on rank
-    # Best monetary -> High Value
-    # Next best -> Low Engagement or At Risk?
-    # Usually: 
-    # High Monetary, Low Recency -> High Value
-    # Low Monetary, High Recency -> At Risk
+    # Segment Labeling
     labels = {}
     for i, cluster in enumerate(sorted_clusters):
         if i == 0:
             labels[cluster] = 'High Value'
         elif i == 1:
-            labels[cluster] = 'Low Engagement'
+            labels[cluster] = 'Low Engagement' # Moderate spending
         else:
-            labels[cluster] = 'At Risk'
+            labels[cluster] = 'At Risk'        # Lowest spending 
             
     features['Segment'] = features['Cluster'].map(labels)
     
-    print(features['Segment'].value_counts())
+    print("Segment distribution:\n", features['Segment'].value_counts())
     
     return features, scaler, kmeans, inertias
