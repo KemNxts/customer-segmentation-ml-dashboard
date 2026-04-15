@@ -168,8 +168,8 @@ export default function ModelComparison() {
             {featureImp.length > 0 && (
               <div className="glass-card w-full min-h-[350px] flex flex-col">
                 <h3 className="text-lg font-bold text-white mb-6">Feature Importance ({bestModel.name})</h3>
-                <div className="flex-grow">
-                <ResponsiveContainer width="100%" height="100%">
+                <div className="flex-grow min-h-[300px]">
+                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                   <BarChart data={featureImp} layout="vertical" margin={{ left: -20, right: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
                     <XAxis type="number" stroke="#94a3b8" fontSize={12} />

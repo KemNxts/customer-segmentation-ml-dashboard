@@ -1,4 +1,4 @@
-`import { useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 import { Play, TrendingUp, AlertTriangle, Target, Lightbulb, Loader2, CheckCircle } from 'lucide-react';
 
@@ -170,7 +170,7 @@ export default function ModelTest() {
 
         {result ? (
           <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500 h-full flex flex-col pt-2">
-            <div className={`glass - card border - t - 4 ${ resultInfo.borderClass } ${ resultInfo.shadowClass } `}>
+            <div className={`glass-card border-t-4 ${ resultInfo.borderClass } ${ resultInfo.shadowClass }`}>
               <div className="flex flex-col space-y-4">
                 <div className="flex items-center">
                   {resultInfo.icon}
@@ -183,7 +183,7 @@ export default function ModelTest() {
                 </div>
 
                 <div className="flex items-center justify-start space-x-4 pt-2">
-                  <span className={`px - 4 py - 1.5 rounded - full text - sm font - bold border border - white / 5 ${ resultInfo.bgClass } ${ resultInfo.textClass } `}>
+                  <span className={`px-4 py-1.5 rounded-full text-sm font-bold border border-white/5 ${ resultInfo.bgClass } ${ resultInfo.textClass }`}>
                      Confidence: {(result.probability * 100).toFixed(1)}%
                   </span>
                   <span className="px-4 py-1.5 rounded-full text-sm font-bold bg-white/5 border border-white/5 text-gray-300">
@@ -193,8 +193,8 @@ export default function ModelTest() {
               </div>
             </div>
             
-            <div className={`glass - card ${ resultInfo.bgClass.replace('/20', '/5') } border - l - 4 ${ resultInfo.borderClass.replace('border-t-', 'border-l-') } flex - grow shadow - lg`}>
-               <h3 className={`uppercase tracking - widest text - xs font - bold mb - 3 ${ resultInfo.textClass } `}>Recommended Action</h3>
+            <div className={`glass-card ${ resultInfo.bgClass.replace('/20', '/5') } border-l-4 ${ resultInfo.borderClass.replace('border-t-', 'border-l-') } flex-grow shadow-lg`}>
+               <h3 className={`uppercase tracking-widest text-xs font-bold mb-3 ${ resultInfo.textClass }`}>Recommended Action</h3>
                <p className="text-white font-bold text-xl mb-4">{result.recommendations.strategy}</p>
                <div className="space-y-2">
                  <p className="text-xs text-textMuted uppercase font-bold tracking-wider">Suggested Steps</p>

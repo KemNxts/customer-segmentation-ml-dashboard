@@ -36,7 +36,7 @@ export default function RFMDashboard() {
                 <div className="glass-card">
                     <h2 className="text-xl font-bold text-white mb-6">Monetary Value by Segment</h2>
                     <div className="h-80">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                             <BarChart data={data}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                                 <XAxis dataKey="name" stroke="#94a3b8" />
@@ -51,7 +51,7 @@ export default function RFMDashboard() {
                 <div className="glass-card">
                     <h2 className="text-xl font-bold text-white mb-6">Recency (Days) by Segment</h2>
                     <div className="h-80">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                             <BarChart data={data}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                                 <XAxis dataKey="name" stroke="#94a3b8" />
@@ -66,7 +66,7 @@ export default function RFMDashboard() {
                 <div className="glass-card lg:col-span-2">
                     <h2 className="text-xl font-bold text-white mb-6">Frequency (Purchases) by Segment</h2>
                     <div className="h-80 w-full lg:w-1/2 mx-auto">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                             <BarChart data={data}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                                 <XAxis dataKey="name" stroke="#94a3b8" />

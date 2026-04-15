@@ -34,7 +34,7 @@ export default function Segmentation() {
                 <div className="glass-card lg:col-span-2">
                     <h2 className="text-xl font-bold text-white mb-6">Audience Distribution</h2>
                     <div className="h-96">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                             <PieChart>
                                 <Pie
                                     data={data}
