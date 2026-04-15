@@ -5,7 +5,6 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from recommendation import generate_recommendations
-from train import run_training_pipeline
 from pydantic import BaseModel
 
 class MLFeatures(BaseModel):
@@ -32,6 +31,8 @@ kmeans = None
 best_model = None
 metrics = None
 summary = None
+ml_scaler = None
+ml_features = None
 
 @app.on_event("startup")
 def load_artifacts():
@@ -56,6 +57,14 @@ def load_artifacts():
         if os.path.exists('artifacts/summary.json'):
             with open('artifacts/summary.json', 'r') as f:
                 summary = json.load(f)
+        if os.path.exists('artifacts/ml_scaler.pkl'):
+            with open('artifacts/ml_scaler.pkl', 'rb') as f:
+                global ml_scaler
+                ml_scaler = pickle.load(f)
+        if os.path.exists('artifacts/ml_features.json'):
+            with open('artifacts/ml_features.json', 'r') as f:
+                global ml_features
+                ml_features = json.load(f)
     except Exception as e:
         print(f"Error loading artifacts: {e}")
 
@@ -87,6 +96,31 @@ def get_model_metrics():
         raise HTTPException(status_code=404, detail="Metrics not found.")
     return metrics
 
+@app.get("/scatter-data")
+def get_scatter_data(limit: int = 1000):
+    if features_df is None:
+        raise HTTPException(status_code=404, detail="Data not found.")
+    
+    # Sample data for performance
+    df_sample = features_df.sample(n=min(limit, len(features_df)), random_state=42)
+    
+    # Send colors mapped by segment for easy frontend integration
+    color_map = {
+        "High Value": "#10b981", # emerald-500
+        "Loyal Customers": "#3b82f6", # blue-500
+        "At Risk": "#f59e0b", # amber-500
+        "Lost Customers": "#ef4444", # rose-500
+        "Average Value": "#a855f7" # purple-500
+    }
+    
+    return {
+        "Recency": df_sample["Recency"].tolist(),
+        "Frequency": df_sample["Frequency"].tolist(),
+        "Monetary": df_sample["Monetary"].tolist(),
+        "Segment": df_sample["Segment"].tolist(),
+        "Colors": [color_map.get(s, "#94a3b8") for s in df_sample["Segment"]]
+    }
+
 @app.get("/predict/{customer_id}")
 def predict_customer(customer_id: float):
     # Customer IDs are float in dataset initially due to NaNs, then int.
@@ -103,10 +137,18 @@ def predict_customer(customer_id: float):
     else:
         cust_data = features_df.loc[customer_id]
         
-    drop_cols = ['PurchasedNext30Days', 'Cluster', 'Segment']
+    drop_cols = ['PurchasedNext30Days', 'Cluster', 'Segment', 'Will_Purchase_Again']
     X = cust_data.drop(labels=[col for col in drop_cols if col in cust_data.index]).to_frame().T
     
-    predicted = int(best_model.predict(X)[0])
+    if ml_features is not None:
+        X = X[[col for col in ml_features if col in X.columns]]
+        
+    if ml_scaler is not None:
+        X_scaled = ml_scaler.transform(X)
+    else:
+        X_scaled = X
+    
+    predicted = int(best_model.predict(X_scaled)[0])
     segment = cust_data['Segment']
     actual = int(cust_data.get('PurchasedNext30Days', -1))
     
@@ -138,26 +180,6 @@ def recommend_for_customer(customer_id: float):
         "recommendations": recs
     }
 
-@app.post("/retrain")
-def retrain_models():
-    # Store old metrics for comparison
-    old_metrics = metrics.copy() if metrics else {}
-    
-    try:
-        # Execute the full training pipeline synchronously
-        new_metrics = run_training_pipeline()
-        
-        # Trigger reload of the newly written artifacts into memory
-        load_artifacts()
-        
-        return {
-            "status": "success",
-            "message": "Model retrained successfully",
-            "metrics": new_metrics,
-            "old_metrics": old_metrics
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/predict/manual")
 def predict_manual(features: MLFeatures):
@@ -213,8 +235,20 @@ def predict_manual(features: MLFeatures):
             "PurchaseFreqPerDay": purchase_freq_per_day
         }])
         
-        prob = best_model.predict_proba(X_input)[0][1]
-        pred_class = int(best_model.predict(X_input)[0])
+        if ml_features is not None:
+            # Handle potentially missing columns just in case
+            for col in ml_features:
+                if col not in X_input.columns:
+                    X_input[col] = 0.0
+            X_input = X_input[ml_features]
+            
+        if ml_scaler is not None:
+            X_input_scaled = ml_scaler.transform(X_input)
+        else:
+            X_input_scaled = X_input
+            
+        prob = best_model.predict_proba(X_input_scaled)[0][1]
+        pred_class = int(best_model.predict(X_input_scaled)[0])
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
         

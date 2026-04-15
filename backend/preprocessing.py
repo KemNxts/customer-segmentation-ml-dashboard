@@ -4,7 +4,6 @@ import numpy as np
 def load_and_clean_data(filepath: str) -> pd.DataFrame:
     """Loads dataset and performs essential cleaning and outlier removal."""
     print(f"Loading raw dataset from {filepath}...")
-    # Using unicode_escape to avoid typical encoding errors found in retail datasets
     df = pd.read_csv(filepath, encoding='unicode_escape')
     
     print(f"Initial shape: {df.shape}")
@@ -13,7 +12,10 @@ def load_and_clean_data(filepath: str) -> pd.DataFrame:
     if 'Customer ID' in df.columns:
         df.rename(columns={'Customer ID': 'CustomerID'}, inplace=True)
         
-    df = df.dropna(subset=['CustomerID']).copy()
+    df = df.dropna(subset=['CustomerID', 'InvoiceDate', 'Invoice', 'Quantity', 'Price']).copy()
+    
+    # Drop exact duplicates
+    df.drop_duplicates(inplace=True)
     
     # Filter out cancelled orders
     df['Invoice'] = df['Invoice'].astype(str)

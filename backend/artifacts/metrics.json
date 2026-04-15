@@ -1,89 +1,86 @@
 {
     "Logistic Regression": {
-        "accuracy": 0.9521028037383178,
-        "precision": 0.9470338983050848,
-        "recall": 0.9654427645788337,
-        "f1_score": 0.9561497326203209,
+        "accuracy": 0.686641697877653,
+        "precision": 0.5098684210526315,
+        "recall": 0.603112840466926,
+        "f1_score": 0.5525846702317291,
         "confusion_matrix": [
             [
-                368,
-                25
+                395,
+                149
             ],
             [
-                16,
-                447
+                102,
+                155
             ]
         ],
         "feature_importance": {
-            "PurchaseFreqPerDay": 4.6579580641605585,
-            "Frequency": 0.1407046836470495,
-            "Recency": 0.06499936962377748,
-            "Tenure": 0.02440027806052911,
-            "MinOrderValue": 0.005061001442902629,
-            "AvgOrderValue": 0.004101536145436947,
-            "OrderValueStd": 0.003925652928921031,
-            "MaxOrderValue": 0.001042473243941837,
-            "Monetary": 0.0002835872436406411,
-            "TotalItems": 0.00014425001902773345,
-            "AvgItemsPerOrder": 0.00011311772956769117
+            "Frequency": 0.4063805092565173,
+            "Recency": 0.13210881521259782,
+            "Monetary": 0.11184462011568927,
+            "MaxOrderValue": 0.10109996102793474,
+            "MinOrderValue": 0.06280566343897373,
+            "OrderValueStd": 0.05855572765028268,
+            "AvgOrderValue": 0.04049759748391207,
+            "PurchaseFreqPerDay": 0.032526410923026924,
+            "AvgItemsPerOrder": 0.029509450736934444,
+            "Tenure": 0.02467124415413107
         }
     },
     "Random Forest": {
-        "accuracy": 0.9883177570093458,
-        "precision": 0.9788583509513742,
-        "recall": 1.0,
-        "f1_score": 0.9893162393162394,
+        "accuracy": 0.7215980024968789,
+        "precision": 0.580952380952381,
+        "recall": 0.47470817120622566,
+        "f1_score": 0.5224839400428265,
         "confusion_matrix": [
             [
-                383,
-                10
+                456,
+                88
             ],
             [
-                0,
-                463
+                135,
+                122
             ]
         ],
         "feature_importance": {
-            "PurchaseFreqPerDay": 0.3272124810648344,
-            "Recency": 0.23326152019939683,
-            "OrderValueStd": 0.14443735168113825,
-            "Frequency": 0.11889994457388763,
-            "Monetary": 0.06411204296564293,
-            "Tenure": 0.04343256873765826,
-            "TotalItems": 0.02912112156206375,
-            "MinOrderValue": 0.01335543848213551,
-            "MaxOrderValue": 0.011160987250339633,
-            "AvgItemsPerOrder": 0.007798463331063191,
-            "AvgOrderValue": 0.007208080151839516
+            "Monetary": 0.13518592699165202,
+            "Recency": 0.132908977348923,
+            "Frequency": 0.11820139977845265,
+            "Tenure": 0.11126366546563134,
+            "PurchaseFreqPerDay": 0.09794738768424209,
+            "AvgItemsPerOrder": 0.08857161808107228,
+            "MinOrderValue": 0.08655641391071953,
+            "AvgOrderValue": 0.07804122624864641,
+            "OrderValueStd": 0.07610927896476534,
+            "MaxOrderValue": 0.07521410552589533
         }
     },
     "Gradient Boosting": {
-        "accuracy": 0.991822429906542,
-        "precision": 0.9892703862660944,
-        "recall": 0.9956803455723542,
-        "f1_score": 0.9924650161463939,
+        "accuracy": 0.7528089887640449,
+        "precision": 0.7185185185185186,
+        "recall": 0.377431906614786,
+        "f1_score": 0.49489795918367346,
         "confusion_matrix": [
             [
-                388,
-                5
+                506,
+                38
             ],
             [
-                2,
-                461
+                160,
+                97
             ]
         ],
         "feature_importance": {
-            "PurchaseFreqPerDay": 0.7233882669228767,
-            "Recency": 0.2676140651226646,
-            "TotalItems": 0.0026069950678576587,
-            "Frequency": 0.00201494117896493,
-            "Tenure": 0.0014403665460586842,
-            "Monetary": 0.001266392591926155,
-            "OrderValueStd": 0.000800148653138051,
-            "MinOrderValue": 0.00031755314796176295,
-            "MaxOrderValue": 0.00021920611167593586,
-            "AvgOrderValue": 0.00017574499605683928,
-            "AvgItemsPerOrder": 0.00015631966081858088
+            "Frequency": 0.3620259354131439,
+            "Recency": 0.11839381635208475,
+            "Tenure": 0.10811384456400037,
+            "PurchaseFreqPerDay": 0.09827404498868998,
+            "Monetary": 0.07477993581691725,
+            "AvgItemsPerOrder": 0.06546209015940573,
+            "MinOrderValue": 0.05376473572023429,
+            "OrderValueStd": 0.044108197976262115,
+            "MaxOrderValue": 0.04338587160312526,
+            "AvgOrderValue": 0.031691527406136386
         }
     }
 }

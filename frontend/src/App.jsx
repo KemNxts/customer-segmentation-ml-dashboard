@@ -4,6 +4,8 @@ import ModelComparison from "./pages/ModelComparison";
 import ModelTest from "./pages/ModelTest";
 import Navbar from "./layouts/Navbar";
 
+import DataVisualizations from "./pages/DataVisualizations";
+
 function App() {
   return (
     <div className="min-h-screen bg-background text-text flex flex-col font-sans relative overflow-x-hidden">
@@ -30,6 +32,11 @@ function App() {
             <h2 className="text-xl font-bold text-white mb-4">Model Performance Metrics</h2>
             <ModelComparison />
           </div>
+        </div>
+
+        {/* ADVANCED PLOTLY DATA VISUALIZATIONS */}
+        <div className="w-full">
+          <DataVisualizations />
         </div>
 
       </main>

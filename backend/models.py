@@ -1,23 +1,41 @@
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+import pickle
+import json
 
 def train_and_evaluate_models(features: pd.DataFrame):
-    print("Training Predictive Models...")
+    print("Training Predictive Models with automated checks...")
     
     # Models will learn to classify future purchase viability dropping explicit identifiers.
     drop_cols = ['Cluster', 'Segment', 'Will_Purchase_Again', 'CustomerID']
     X = features.drop(columns=[col for col in drop_cols if col in features.columns])
     y = features['Will_Purchase_Again']
     
+    # MULTICOLLINEARITY CHECK (> 0.85 absolute correlation)
+    corr_matrix = X.corr().abs()
+    upper_tri = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+    to_drop = [column for column in upper_tri.columns if any(upper_tri[column] > 0.85)]
+    
+    if to_drop:
+        print(f"Dropping highly correlated features to prevent redundancy: {to_drop}")
+        X = X.drop(columns=to_drop)
+        
     # Stratified Train-Test Split to maintain label proportions
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
     
-    # Initialize models with optimized hyperparameters to improve accuracy
+    # FEATURE SCALING (StandardScaler)
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    
+    # Initialize models
     models = {
         'Logistic Regression': LogisticRegression(
             max_iter=2000, 
@@ -47,8 +65,8 @@ def train_and_evaluate_models(features: pd.DataFrame):
     
     for name, model in models.items():
         print(f"Training {name}...")
-        model.fit(X_train, y_train)
-        preds = model.predict(X_test)
+        model.fit(X_train_scaled, y_train)
+        preds = model.predict(X_test_scaled)
         
         acc = accuracy_score(y_test, preds)
         prec = precision_score(y_test, preds, zero_division=0)
@@ -56,15 +74,22 @@ def train_and_evaluate_models(features: pd.DataFrame):
         f1 = f1_score(y_test, preds, zero_division=0)
         cm = confusion_matrix(y_test, preds).tolist()
         
-        # Track feature importance and sort it for better insights
+        # Track feature importance and FORCE sum to 1.0 (100%)
         feat_importance = {}
+        raw_vals = None
+        
         if hasattr(model, 'feature_importances_'):
-            imp_tuples = zip(X.columns, model.feature_importances_)
-            feat_importance = {k: v for k, v in sorted(imp_tuples, key=lambda item: item[1], reverse=True)}
+            raw_vals = model.feature_importances_
         elif hasattr(model, 'coef_'):
-            imp_tuples = zip(X.columns, abs(model.coef_[0]))
-            feat_importance = {k: v for k, v in sorted(imp_tuples, key=lambda item: item[1], reverse=True)}
+            raw_vals = abs(model.coef_[0])
             
+        if raw_vals is not None:
+             total_import = np.sum(raw_vals)
+             if total_import > 0:
+                 normalized_vals = raw_vals / total_import
+                 imp_tuples = zip(X.columns, normalized_vals)
+                 feat_importance = {k: float(v) for k, v in sorted(imp_tuples, key=lambda item: item[1], reverse=True)}
+                 
         results[name] = {
             'accuracy': acc,
             'precision': prec,
@@ -74,12 +99,19 @@ def train_and_evaluate_models(features: pd.DataFrame):
             'feature_importance': feat_importance
         }
         
-        # Optimize model selection prioritizing F1 score due to likely class imbalance
         if f1 > best_f1:
             best_f1 = f1
             best_model_name = name
             best_model = model
             
     print(f"Best Model Selected: {best_model_name} with F1-Score: {best_f1:.4f}")
+    
+    # Save the StandardScaler trained squarely on the prediction features!
+    with open('artifacts/ml_scaler.pkl', 'wb') as f:
+        pickle.dump(scaler, f)
+        
+    # Save the surviving columns order to dynamically apply scaling in the endpoint
+    with open('artifacts/ml_features.json', 'w') as f:
+        json.dump(list(X.columns), f)
     
     return best_model, best_model_name, results
